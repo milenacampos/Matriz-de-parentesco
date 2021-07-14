@@ -1,0 +1,68 @@
+
+# Versao: 0.01
+################################################################################
+#                 PROGRAMA PARA MONTAR A MATRIZ DO NUMERADORES                 #
+#                 DOS COEFICIENTES DE PARENTESCO DE WRIGTH (A)                 #
+#                            HENDERSON, C.R., 1976                             #
+################################################################################
+#                                                                              #
+#                                                                              #
+#                                                                              #
+#Ex: Mrode (Linear Models for the predicition genetic values)                  #
+################################################################################
+
+#Entra com arquivo de daddos
+
+ped <- read.table("C:/Patricia/NRM/ped.txt")
+ped <- read.table("C:/Users/milen/OneDrive/Documentos/MESTRADO BIOCIENCIA ANIMAL-UFJ/Dados Dissertação/capitulo 2/ped.txt")
+colnames(ped) <- c("id","sire","dam")
+ped=ped[-1,]
+
+cat("Function to Constructing Numerator Relationship Matrix /n")
+
+A <- matrix(0, nrow(ped), nrow(ped))
+
+A<- as.matrix(ped)
+#teste
+attach(ped)
+#i<-2
+#j<-3
+NRM <- function(ped, col_sire, col_dam){
+
+   for (i in 1:nrow(ped)){
+      #both parents unknown
+      if( sire[i] == 0 & dam[i] == 0 ){
+        for( j in 1:(i-1)) {
+        A[j,i] <- A[i,j] <- 0
+        }
+        A[i,i] <- 1
+      }
+      ## Si're is unknown
+      if( sire[i] == 0 & dam[i] != 0 ){
+        for( j in 1:(i-1)) {
+          A[j,i] <- A[i,j] <- 0.5*(A[j,dam[i]])
+          }
+          A[i,i] <- 1
+        }
+        ## Dam is unknown
+      if( dam[i] == 0 & sire[i] != 0 ){
+          for( j in 1:(i-1)) {
+          A[j,i] <- A[i,j] <- 0.5*(A[j,sire[i]])
+          }
+          A[i,i] <- 1
+      }
+        ## Both are known
+        if( dam[i] != 0 & sire[i] != 0 ){
+        for( j in 1:(i-1)) {
+        A[j,i] <- A[i,j] <- 0.5*(A[j,sire[i]]+A[j,dam[i]])
+          }
+        A[i,i] <- 1+0.5*(A[dam[i],sire[i]])
+        }
+      }
+  return(A)
+}
+
+# Calculate a Numerator Relationship Matrix
+A = NRM(ped = ped, col_sire = 2, col_dam = 3)
+# Calculate a Inverse Numerator Relationship Matrix
+Ainv = solve(A) 
